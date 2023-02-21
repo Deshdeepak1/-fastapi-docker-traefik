@@ -31,8 +31,8 @@ services:
       context: .
       dockerfile: Dockerfile.traefik
     ports:
-      - 8080:80
-      - 4443:443
+      - 80:80
+      - 443:443
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./traefik-public-certificates:/certificates"
