@@ -5,12 +5,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    ports:
-      - 8009:80
+    expose:
+      - 80
     environment:
       - DATABASE_URL=postgresql://fastapi_traefik_prod:fastapi_traefik_prod@db:5432/fastapi_traefik_prod
     depends_on:
       - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`fastapi-traefik.deshdeepak.xyz`)"
+      - "traefik.http.routers.fastapi.tls=true"
+      - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
   db:
     image: postgres:15-alpine
     volumes:
@@ -21,6 +26,25 @@ services:
       - POSTGRES_USER=fastapi_traefik_prod
       - POSTGRES_PASSWORD=fastapi_traefik_prod
       - POSTGRES_DB=fastapi_traefik_prod
+  traefik:
+    build:
+      context: .
+      dockerfile: Dockerfile.traefik
+    ports:
+      - 8080:80
+      - 4443:443
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik-public-certificates:/certificates"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard-fastapi-traefik.deshdeepak.xyz`) && (PathPrefix(`/`)"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=testuser:$$apr1$$ooFvW19H$$XIykJbjs0MpKPmkqAeFIF1"
 
 volumes:
   postgres_data_prod:
+  traefik-public-certificates:
