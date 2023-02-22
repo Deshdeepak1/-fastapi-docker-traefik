@@ -23,4 +23,7 @@ class User(ormar.Model):
 
 
 engine = sqlalchemy.create_engine(settings.db_url)
-metadata.create_all(engine)
+try:
+    metadata.create_all(engine)
+except Exception:
+    pass
